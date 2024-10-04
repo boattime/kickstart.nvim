@@ -204,6 +204,10 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- Custom config
+require 'custom.config.keymaps'
+require 'custom.config.options'
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
