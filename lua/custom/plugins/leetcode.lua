@@ -8,7 +8,6 @@ return {
 
     -- optional
     'nvim-treesitter/nvim-treesitter',
-    'rcarriga/nvim-notify',
     'nvim-tree/nvim-web-devicons',
   },
   -- Template file https://github.com/kawre/leetcode.nvim/blob/master/lua/leetcode/config/template.lua
