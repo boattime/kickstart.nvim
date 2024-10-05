@@ -6,3 +6,6 @@ vim.opt.relativenumber = true
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.expandtab = true
+
+-- Uncomment to turn lsp debuging on for local development
+--vim.lsp.set_log_level 'debug'
