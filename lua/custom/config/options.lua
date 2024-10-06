@@ -9,3 +9,6 @@ vim.opt.expandtab = true
 
 -- Uncomment to turn lsp debuging on for local development
 --vim.lsp.set_log_level 'debug'
+
+-- Required for obsidian plugin
+vim.opt.conceallevel = 1
