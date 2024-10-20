@@ -14,21 +14,46 @@ return {
     -- Required.
     'nvim-lua/plenary.nvim',
   },
+  keys = {
+    {
+      "<leader>fn",
+      "<cmd>ObsidianSearch<CR>",
+      desc = "Find Obsidian Notes",
+    },
+  },
   opts = {
     workspaces = {
       {
-        name = 'personal',
-        path = '~/Documents/notes',
-        overrides = {
-          notes_subdir = 'Rough-Notes',
-        },
+        name = "work",
+        path = "~/Documents/notes",
       },
     },
+    notes_subdir = "Rough-Notes",
+    new_notes_location = "notes_subdir",
+    templates = {
+      folder = "Templates",
+      date_format = "%Y-%m-%d",
+      time_format = "%H:%M",
+    },
 
-    -- Where to put new notes. Valid options are
-    --  * "current_dir" - put new notes in same directory as the current buffer.
-    --  * "notes_subdir" - put new notes in the default notes subdirectory.
-    new_notes_location = 'notes_subdir',
+    disable_frontmatter = function(filename)
+      local dirName = "Templates"
+
+      if string.find(filename, dirName) then
+        return true
+      end
+
+      return false
+    end,
+
+    -- Optional, by default when you use `:ObsidianFollowLink` on a link to an external
+    -- URL it will be ignored but you can customize this behavior here.
+    ---@param url string
+    follow_url_func = function(url)
+      -- Open the URL in the default web browser.
+      vim.fn.jobstart({ "open", url }) -- Mac OS
+      -- vim.fn.jobstart({"xdg-open", url})  -- linux
+    end,
 
     -- Optional, alternatively you can customize the frontmatter data.
     ---@return table
@@ -38,7 +63,15 @@ return {
         note:add_alias(note.title)
       end
 
-      local out = { id = note.id, aliases = note.aliases, tags = note.tags, project = '', area = '' }
+      --local current_file_name = vim.api.nvim_buf_get_name(0)
+      --local creationDate = getCreationDate(current_file_name)
+      --
+      local out = {}
+      if note.metadata and note.metadata.type == "daily note" then
+        out = { id = tostring(note.id), aliases = note.aliases, tags = note.tags }
+      else
+        out = { id = tostring(note.id), aliases = note.aliases, tags = note.tags, project = "", area = "" }
+      end
 
       -- `note.metadata` contains any manually added fields in the frontmatter.
       -- So here we just make sure those fields are kept in the frontmatter.
@@ -48,19 +81,9 @@ return {
         end
       end
 
+      --out['created_date'] = creationDate
+
       return out
-    end,
-
-    -- Optional, boolean or a function that takes a filename and returns a boolean.
-    -- `true` indicates that you don't want obsidian.nvim to manage frontmatter.
-    disable_frontmatter = function(filename)
-      local dirName = 'Templates'
-
-      if string.find(filename, dirName) then
-        return true
-      end
-
-      return false
     end,
   },
 }
