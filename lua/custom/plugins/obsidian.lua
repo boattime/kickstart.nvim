@@ -20,6 +20,11 @@ return {
       "<cmd>ObsidianSearch<CR>",
       desc = "Find Obsidian Notes",
     },
+    {
+      "<leader>sp",
+      "<cmd>ObsidianProjects<CR>",
+      desc = "[S]earch [P]rojects",
+    },
   },
   opts = {
     workspaces = {
@@ -85,5 +90,75 @@ return {
 
       return out
     end,
+
+    vim.api.nvim_create_user_command("ObsidianNewProject", function(args)
+      local util = require("obsidian.util")
+      local client = require("obsidian").get_client()
+      local name = args.fargs[1]
+
+      local dir_path = client:vault_root()
+      dir_path = dir_path:joinpath("Projects/" .. name)
+      dir_path:mkdir({
+        exist_ok = true
+      })
+
+      local id = util.zettel_id()
+      client:create_note({
+        id = id,
+        title = name,
+        dir = "Projects/" .. name,
+      })
+
+      client:update_ui()
+
+    end, {
+        nargs = 1,
+    }),
+
+    vim.api.nvim_create_user_command("ObsidianProjects", function()
+      local pickers = require('telescope.pickers')
+      local finders = require('telescope.finders')
+      local conf = require('telescope.config').values
+      local actions = require('telescope.actions')
+      local action_state = require('telescope.actions.state')
+      local util = require('custom.config.utils')
+      local client = require("obsidian").get_client()
+      local base_path = client:vault_root()
+      base_path = tostring(base_path:joinpath("Projects/"))
+
+      print(base_path)
+
+      local dirs = util.get_directories(base_path)
+
+      -- Create telescope picker
+      local picker = pickers.new({}, {
+        prompt_title = 'Select Directory',
+        finder = finders.new_table {
+            results = dirs
+        },
+        sorter = conf.generic_sorter({}),
+        attach_mappings = function(prompt_bufnr)
+          actions.select_default:replace(function()
+            actions.close(prompt_bufnr)
+            local selection = action_state.get_selected_entry()
+
+            -- Get the full path of the selected directory
+            local dir_path = base_path .. '/' .. selection[1]
+
+            -- Get and open the first file
+            local first_file = util.get_first_file(dir_path)
+            if first_file then
+              vim.cmd('edit ' .. first_file)
+            else
+              print("No files found in the selected directory")
+            end
+          end)
+          return true
+          end,
+      })
+
+      picker:find()
+
+    end, {})
   },
 }
