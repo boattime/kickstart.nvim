@@ -610,8 +610,6 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
-        -- gopls = {},
-        -- pyright = {},
         rust_analyzer = {
           cmd = { vim.fn.expand '~/.cargo/bin/rust-analyzer' },
           settings = {
@@ -621,6 +619,9 @@ require('lazy').setup({
               },
             },
           },
+        },
+        zls = {
+          cmd = { vim.fn.expand '~/.nix-profile/bin/zls' },
         },
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -647,6 +648,14 @@ require('lazy').setup({
         },
       }
 
+      -- Servers listed here will not be installed by Mason.
+      -- They must be installed and managed manually (e.g. via nix, cargo, etc).
+      -- lspconfig setup for these is handled below after the mason-lspconfig block.
+      local manually_managed = {
+        -- zls = true,
+        -- rust_analyzer = true,
+      }
+
       -- Ensure the servers and tools above are installed
       --  To check the current status of installed tools and/or manually install
       --  other tools, you can run
@@ -657,7 +666,9 @@ require('lazy').setup({
 
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
-      local ensure_installed = vim.tbl_keys(servers or {})
+      local ensure_installed = vim.tbl_filter(function(name)
+        return not manually_managed[name]
+      end, vim.tbl_keys(servers or {}))
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
       })
@@ -675,6 +686,14 @@ require('lazy').setup({
           end,
         },
       }
+
+      -- Set up manually managed servers directly (not via Mason)
+      for name, _ in pairs(manually_managed) do
+        local server = servers[name] or {}
+        server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+        vim.lsp.config(name, server)
+        vim.lsp.enable(name)
+      end
     end,
   },
 
